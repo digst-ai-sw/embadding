@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semantic Comparison Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-color: #0b0f19;
+    --bg-gradient: radial-gradient(circle at top right, rgba(111, 87, 255, 0.15), transparent 40%),
+                   radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1), transparent 40%);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent: #6366f1;
+    --accent-hover: #4f46e5;
+    --accent-glow: rgba(99, 102, 241, 0.2);
+    --success: #10b981;
+    --card-radius: 16px;
+    --input-bg: rgba(15, 23, 42, 0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background-color: var(--bg-color);
+    background-image: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    line-height: 1.5;
+  }
+
+  /* Typography */
+  h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -0.05em; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  h2 { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem; }
+  
+  .subtitle { color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.5rem; max-width: 500px; margin-left: auto; margin-right: auto;}
+  
+  /* Layout */
+  .container { max-width: 900px; width: 100%; position: relative; }
+  
+  header { text-align: center; margin-bottom: 2.5rem; position: relative; }
+  
+  .settings-btn {
+    position: absolute; top: 0; right: 0; background: var(--glass-bg); border: 1px solid var(--glass-border);
+    color: var(--text-secondary); width: 44px; height: 44px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 1.2rem;
+  }
+  .settings-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); transform: rotate(30deg); }
+
+  /* Glass Panels */
+  .glass-panel {
+    background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border); border-radius: var(--card-radius); padding: 1.5rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  /* Inputs */
+  .input-group { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+  .input-wrapper { position: relative; }
+  input[type="text"], textarea {
+    width: 100%; background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 12px;
+    padding: 1.2rem; color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 1rem;
+    transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); outline: none; resize: none;
+  }
+  input[type="text"]:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  
+  /* Buttons */
+  .btn {
+    width: 100%; padding: 1.2rem; background: var(--accent); color: white; border: none; border-radius: 12px;
+    cursor: pointer; font-weight: 600; font-size: 1rem; letter-spacing: 0.05em; margin-bottom: 2rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 4px 15px var(--accent-glow);
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); background: var(--accent-hover); box-shadow: 0 8px 25px var(--accent-glow); }
+  .btn:active:not(:disabled) { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+  
+  .btn-secondary { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); box-shadow: none; }
+  .btn-secondary:hover:not(:disabled) { background: rgba(255,255,255,0.1); box-shadow: none; }
+
+  /* Example Chips */
+  .examples-container { text-align: center; margin-bottom: 2.5rem; }
+  .examples-title { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+  .chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+  .chip {
+    padding: 0.5rem 1rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px;
+    color: var(--text-secondary); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--text-primary); background: rgba(99, 102, 241, 0.1); transform: translateY(-1px); }
+
+  /* Model Grid */
+  .section-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-title svg { color: var(--accent); }
+  
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin-bottom: 2.5rem; }
+  
+  .model-card {
+    background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--card-radius);
+    padding: 1.5rem; position: relative; transition: transform 0.3s ease; overflow: hidden;
+  }
+  .model-card:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-3px); }
+  
+  .model-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--glass-border); }
+  .model-card.active::before { background: var(--accent); }
+  .model-card.done::before { background: var(--success); }
+  
+  .model-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+  .model-name { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+  .model-badge { font-size: 0.7rem; padding: 0.2rem 0.6rem; background: rgba(255,255,255,0.1); border-radius: 20px; color: var(--text-secondary); }
+  .model-desc { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem; height: 2.4rem; overflow: hidden; }
+  
+  .score-display { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.8rem; }
+  .score-val { font-family: 'DM Mono', monospace; font-size: 2.5rem; font-weight: 500; line-height: 1; letter-spacing: -0.05em; }
+  .score-val.high { color: var(--success); text-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+  
+  .progress-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 4px; transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.5s; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3); }
+
+  /* AI Panel */
+  .ai-panel { background: rgba(15, 23, 42, 0.5); border: 1px solid var(--accent); border-radius: var(--card-radius); padding: 1.5rem; position: relative; overflow: hidden; }
+  .ai-panel::after { content:''; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--accent); filter: blur(80px); opacity: 0.3; pointer-events: none; }
+  .ai-label { font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+  .ai-content { font-size: 0.95rem; line-height: 1.6; color: var(--text-primary); min-height: 80px; }
+  .ai-reasoning { background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; color: var(--text-secondary); border-left: 3px solid var(--accent); }
+  .ai-loading { display: none; align-items: center; gap: 0.8rem; color: var(--text-secondary); font-size: 0.9rem; }
+  .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s;
+  }
+  .modal-overlay.active { display: flex; opacity: 1; }
+  .modal-content {
+    background: #111424; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; width: 90%; max-width: 500px;
+    padding: 2rem; transform: scale(0.95); transition: transform 0.3s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+  }
+  .modal-overlay.active .modal-content { transform: scale(1); }
+  .modal-header { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: white; display:flex; justify-content: space-between;}
+  .close-modal { background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; }
+  .close-modal:hover { color: white; }
+  
+  .form-group { margin-bottom: 1.5rem; }
+  .form-group label { display: block; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary); }
+  .form-group select { width: 100%; background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 1rem; color: white; outline:none; font-family:inherit;}
+  
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  /* Status Toast */
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); padding: 0.8rem 1.5rem; border-radius: 30px; font-size: 0.9rem; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 0.8rem; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Semantic Similarity Lab</h1>
+    <p class="subtitle">강력한 브라우저 내장(On-Device) 임베딩 모델군과 상용 LLM의 시맨틱 유사도 추론 결과를 실시간으로 비교하고 평가해 보세요.</p>
+    <button class="settings-btn" id="openSettings" title="API Settings">⚙️</button>
+  </header>
+
+  <div class="glass-panel" style="margin-bottom: 2rem;">
+    <div class="input-group">
+      <div class="input-wrapper">
+        <textarea id="inputA" rows="2" placeholder="첫 번째 문장을 입력하세요...">자율주행 자동차는 센서 데이터를 실시간으로 처리하여 도로 환경을 인지한다.</textarea>
+      </div>
+      <div class="input-wrapper">
+        <textarea id="inputB" rows="2" placeholder="두 번째 문장을 입력하세요...">무인 차량 시스템이 카메라와 라이다 정보를 분석해 주행 경로의 장애물을 파악한다.</textarea>
+      </div>
+    </div>
+    
+    <button class="btn" id="compareBtn" disabled>모델 초기화 중... (다운로드 대기)</button>
+  </div>
+
+  <div class="examples-container">
+    <div class="examples-title">🧪 Try Test Cases</div>
+    <div class="chip-row" id="exampleChips"></div>
+  </div>
+
+  <div class="section-title">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+    On-Device Embedding Models
+  </div>
+  <div class="results-grid" id="resultsGrid">
+    <!-- Cards generated by JS -->
+  </div>
+
+  <div class="section-title">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+    OpenRouter LLM Evaluation
+  </div>
+  <div class="ai-panel">
+    <div class="ai-label">
+      ✨ AI Judgment <span id="currentLlmBadge" class="model-badge">Not configured</span>
+    </div>
+    <div class="ai-loading" id="aiLoading">
+      <div class="spinner"></div> LLM이 문장의 의미적 차이를 분석하고 있습니다...
+    </div>
+    <div class="ai-content" id="aiContent">
+      <span style="color: var(--text-secondary); font-style: italic;">
+        우측 상단 ⚙️ 설정에서 OpenRouter API 키를 입력하면, LLM의 정성적 유사도 평가 결과를 볼 수 있습니다. 현재 설정된 모델과 임베딩 모델들 간의 시각 차이를 비교해보세요.
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      Config & Integrations
+      <button class="close-modal" id="closeSettings">&times;</button>
+    </div>
+    
+    <div class="form-group">
+      <label for="apiKey">OpenRouter API Key <span style="color:var(--error)">*</span></label>
+      <input type="text" id="apiKey" placeholder="sk-or-v1-..." autocomplete="off">
+      <small style="display:block; margin-top:0.5rem; color:var(--text-secondary); font-size:0.75rem;">이 키는 오직 브라우저 내부에만 안전하게(localStorage) 저장되며, 외부 서버로 전송되지 않습니다.</small>
+    </div>
+    
+    <div class="form-group">
+      <label for="llmModel">평가용 LLM 모델 선택</label>
+      <select id="llmModel">
+        <option value="google/gemini-2.5-flash">Gemini 2.5 Flash (추천, 빠르고 정교함)</option>
+        <option value="anthropic/claude-3-haiku">Claude 3 Haiku (우수한 뉘앙스 분석)</option>
+        <option value="openai/gpt-4o-mini">GPT-4o Mini (가성비)</option>
+        <option value="mistralai/mistral-7b-instruct:free">Mistral 7B (무료 모델)</option>
+      </select>
+    </div>
+    
+    <button class="btn" id="saveSettingsBtn" style="margin-bottom:0;">Save & Apply Config</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="spinner" id="toastSpinner"></div>
+  <span id="toastMsg">시스템 초기화 중...</span>
+</div>
+
+<script type="module">
+  // Using pure JS import from transformers.js
+  import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+  
+  // Disable local model check to force HF hub download
+  env.allowLocalModels = false;
+  // Use indexedDB cache for faster subsequent loads (transformers.js default feature)
+  
+  const EMBED_MODELS = [
+    { id: 'Xenova/all-MiniLM-L6-v2', name: 'MiniLM-L6-v2', size: '22MB', desc: 'SBERT 기반. 가장 가볍고 표준적인 비교군 (영어 특화)' },
+    { id: 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', name: 'Multilingual-MiniLM', size: '117MB', desc: '한국어 등 50+ 다국어를 완벽 지원하는 범용 모델' },
+    { id: 'Xenova/bge-small-en-v1.5', name: 'BGE-Small-v1.5', size: '33MB', desc: 'BAAI 개발. 검색(Retrieval) 영역 SOTA급 소형 모델' },
+    { id: 'Xenova/multilingual-e5-small', name: 'E5-Small-Multi', size: '117MB', desc: 'Microsoft 개발. 다국어 임베딩 최상위권 성능 방어' }
+  ];
+
+  const TEST_CASES = [
+    ['의미가 완전히 똑같은가요?', '정말 의미가 완전히 똑같은가요?'],
+    ['딥러닝 논문 작성 프롬프트 가이드', '어떻게 하면 좋은 연구 논문을 쓸 수 있을까?'],
+    ['사과는 맛있지만 배는 맛없어', '배는 맛있지만 사과는 맛없다'],
+    ['The sky is blue and beautiful.', 'The weather is incredibly gorgeous outside.']
+  ];
+
+  // DOM Elements
+  const ui = {
+    grid: document.getElementById('resultsGrid'),
+    compareBtn: document.getElementById('compareBtn'),
+    chips: document.getElementById('exampleChips'),
+    inputA: document.getElementById('inputA'),
+    inputB: document.getElementById('inputB'),
+    
+    // Modal & Toast
+    settingsModal: document.getElementById('settingsModal'),
+    openSettingsBtn: document.getElementById('openSettings'),
+    closeSettingsBtn: document.getElementById('closeSettings'),
+    saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+    apiKeyInput: document.getElementById('apiKey'),
+    llmModelSelect: document.getElementById('llmModel'),
+    toast: document.getElementById('toast'),
+    toastMsg: document.getElementById('toastMsg'),
+    toastSpinner: document.getElementById('toastSpinner'),
+    
+    // AI Panel
+    aiLoading: document.getElementById('aiLoading'),
+    aiContent: document.getElementById('aiContent'),
+    currentLlmBadge: document.getElementById('currentLlmBadge')
+  };
+
+  let modelPipelines = {};
+  let isReady = false;
+
+  // Initialize UI & Settings
+  function loadSettings() {
+    const key = localStorage.getItem('openRouterKey') || '';
+    const model = localStorage.getItem('llmModel') || 'google/gemini-2.5-flash';
+    ui.apiKeyInput.value = key;
+    ui.llmModelSelect.value = model;
+    
+    if(key) {
+      ui.currentLlmBadge.textContent = model.split('/').pop().toUpperCase();
+      ui.currentLlmBadge.style.color = 'var(--text-primary)';
+      ui.currentLlmBadge.style.background = 'rgba(99, 102, 241, 0.3)';
+    }
+  }
+  
+  function saveSettings() {
+    localStorage.setItem('openRouterKey', ui.apiKeyInput.value.trim());
+    localStorage.setItem('llmModel', ui.llmModelSelect.value);
+    ui.settingsModal.classList.remove('active');
+    loadSettings();
+    showToast('설정이 저장되었습니다!', false);
+  }
+
+  // Toast Utility
+  function showToast(msg, loading = true, duration = 3000) {
+    ui.toastMsg.textContent = msg;
+    ui.toastSpinner.style.display = loading ? 'block' : 'none';
+    ui.toast.classList.add('show');
+    
+    if(!loading) {
+      setTimeout(() => ui.toast.classList.remove('show'), duration);
+    }
+  }
+  function hideToast() { ui.toast.classList.remove('show'); }
+
+  // Render Grid Cards
+  function initGrid() {
+    ui.grid.innerHTML = '';
+    EMBED_MODELS.forEach((m, idx) => {
+      const card = document.createElement('div');
+      card.className = 'model-card';
+      card.id = `card-${idx}`;
+      card.innerHTML = `
+        <div class="model-header">
+          <div class="model-name">${m.name}</div>
+          <div class="model-badge">${m.size}</div>
+        </div>
+        <div class="model-desc">${m.desc}</div>
+        <div class="score-display">
+          <div class="score-val" id="score-${idx}">0.00</div>
+          <span style="font-size:0.8rem; color:var(--text-secondary);">유사도</span>
+        </div>
+        <div class="progress-bg">
+          <div class="progress-fill" id="bar-${idx}"></div>
+        </div>
+      `;
+      ui.grid.appendChild(card);
+    });
+  }
+
+  // Load Transformers.js pipelines sequentially to avoid crashing browser
+  async function loadModels() {
+    showToast('AI 프로세서 활성화 및 모델 로드 중 (최초 1회 수십 초 소요)', true);
+    for (let i = 0; i < EMBED_MODELS.length; i++) {
+      const model = EMBED_MODELS[i];
+      try {
+        const p = await pipeline('feature-extraction', model.id);
+        modelPipelines[i] = p;
+        document.getElementById(`card-${i}`).classList.add('active');
+      } catch (err) {
+        console.error(`Failed to load ${model.name}:`, err);
+        document.getElementById(`score-${i}`).textContent = 'ERR';
+        document.getElementById(`score-${i}`).style.fontSize = '1.5rem';
+        document.getElementById(`score-${i}`).style.color = 'var(--error)';
+      }
+    }
+    isReady = true;
+    ui.compareBtn.disabled = false;
+    ui.compareBtn.innerHTML = '✨ Run Advanced Comparison';
+    hideToast();
+  }
+
+  // Cosine Similarity Function
+  function cosineSimilarity(vectorA, vectorB) {
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    for (let i = 0; i < vectorA.length; i++) {
+      dotProduct += vectorA[i] * vectorB[i];
+      normA += vectorA[i] * vectorA[i];
+      normB += vectorB[i] * vectorB[i];
+    }
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  }
+
+  // Local Embedding Inference
+  async function runEmbeddingPhase(textA, textB) {
+    const promises = EMBED_MODELS.map(async (model, idx) => {
+      const pipe = modelPipelines[idx];
+      if (!pipe) return;
+      
+      const card = document.getElementById(`card-${idx}`);
+      card.classList.remove('done');
+      
+      const [outA, outB] = await Promise.all([
+        pipe(textA, { pooling: 'mean', normalize: true }),
+        pipe(textB, { pooling: 'mean', normalize: true })
+      ]);
+      
+      const sim = cosineSimilarity(outA.data, outB.data);
+      const percentage = Math.max(0, sim * 100);
+      
+      // Update UI
+      const scoreEl = document.getElementById(`score-${idx}`);
+      const barEl = document.getElementById(`bar-${idx}`);
+      
+      scoreEl.textContent = sim.toFixed(3);
+      
+      // Color coding
+      if(sim > 0.85) {
+        scoreEl.className = 'score-val high';
+        barEl.style.backgroundColor = 'var(--success)';
+      } else {
+        scoreEl.className = 'score-val';
+        barEl.style.backgroundColor = 'var(--accent)';
+      }
+      
+      // Force reflow for animation
+      barEl.style.width = '0%';
+      setTimeout(() => {
+        barEl.style.width = `${percentage}%`;
+      }, 50);
+      
+      card.classList.add('done');
+    });
+    
+    await Promise.all(promises);
+  }
+
+  // Remote LLM Judgment via OpenRouter
+  async function runLlmPhase(textA, textB) {
+    let apiKey = localStorage.getItem('openRouterKey');
+    const modelName = localStorage.getItem('llmModel') || 'google/gemini-2.5-flash';
+    
+    // GitHub Actions를 통해 주입된 환경변수 키 확인
+    const injectedKey = '__OPENROUTER_API_KEY__';
+    if (!apiKey && injectedKey !== '__OPENROUTER_API_' + 'KEY__') {
+      apiKey = injectedKey;
+    }
+
+    if (!apiKey) {
+      ui.aiContent.innerHTML = `<span style="color:var(--error);">설정에서 OpenRouter API Key를 입력하거나, 저장소 환경변수로 등록해야 평가를 받을 수 있습니다.</span>`;
+      return;
+    }
+    
+    ui.aiContent.style.display = 'none';
+    ui.aiLoading.style.display = 'flex';
+    
+    const systemPrompt = `당신은 언어학 및 AI 임베딩 성능을 평가하는 전문가입니다. 사용자가 두 문장을 제시하면, 의미적으로 얼마나 동일한지(유사도) 0.00 ~ 1.00 사이의 점수로 직관적으로 예측하고, 그 이유를 2~3문장 이내로 아주 전문적이고 간결하게 설명하세요. 마크다운을 사용하지 말고 평문으로 작성할 것.
+출력 형식예시:
+예상 유사도: 0.85
+이유: 첫 번째 문장은 A를, 두 번째 문장은 B를 뜻하지만 핵심 맥락(C)은 동일합니다. 단어 구성의 차이가 임베딩 거리에 영향을 줄 수 있습니다.`;
+
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.href, // OpenRouter Requirement
+          'X-Title': 'Semantic Comparison Lab'
+        },
+        body: JSON.stringify({
+          model: modelName,
+          temperature: 0.1,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `문장 A: ${textA}\n문장 B: ${textB}` }
+          ]
+        })
+      });
+      
+      if(!res.ok) throw new Error(`API Error: ${res.status}`);
+      const data = await res.json();
+      const responseText = data.choices[0].message.content;
+      
+      ui.aiContent.innerHTML = `<div class="ai-reasoning">${responseText.replace(/\n/g, '<br/>')}</div>`;
+    } catch(err) {
+      ui.aiContent.innerHTML = `<span style="color:var(--error);">API 호출 실패: ${err.message}. 비용 문제이거나 API 키가 올바른지 확인해주세요.</span>`;
+    } finally {
+      ui.aiLoading.style.display = 'none';
+      ui.aiContent.style.display = 'block';
+    }
+  }
+
+  // Master Control
+  async function handleCompare() {
+    const textA = ui.inputA.value.trim();
+    const textB = ui.inputB.value.trim();
+    
+    if(!textA || !textB) {
+      alert("두 문장을 모두 입력해주세요.");
+      return;
+    }
+    
+    ui.compareBtn.disabled = true;
+    const prevText = ui.compareBtn.innerHTML;
+    ui.compareBtn.innerHTML = '<div class="spinner" style="display:inline-block; vertical-align:middle; margin-right:8px; border-color:white; border-top-color:transparent;"></div> 처리 중...';
+    
+    try {
+      // Run both tasks concurrently
+      await Promise.all([
+        runEmbeddingPhase(textA, textB),
+        runLlmPhase(textA, textB)
+      ]);
+    } catch(e) {
+      console.error(e);
+      showToast('처리 중 오류가 발생했습니다.', false);
+    } finally {
+      ui.compareBtn.disabled = false;
+      ui.compareBtn.innerHTML = prevText;
+    }
+  }
+
+  // Initialize Example Chips
+  function initChips() {
+    TEST_CASES.forEach(([a, b]) => {
+      const chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.textContent = `${a.substring(0, 15)}... ↔ ${b.substring(0, 15)}...`;
+      chip.onclick = () => {
+        ui.inputA.value = a;
+        ui.inputB.value = b;
+        if(isReady) handleCompare();
+      };
+      ui.chips.appendChild(chip);
+    });
+  }
+
+  // Event Listeners
+  ui.compareBtn.addEventListener('click', handleCompare);
+  ui.openSettingsBtn.addEventListener('click', () => ui.settingsModal.classList.add('active'));
+  ui.closeSettingsBtn.addEventListener('click', () => ui.settingsModal.classList.remove('active'));
+  ui.saveSettingsBtn.addEventListener('click', saveSettings);
+  ui.settingsModal.addEventListener('click', (e) => {
+    if(e.target === ui.settingsModal) ui.settingsModal.classList.remove('active');
+  });
+
+  // App Bootstrap
+  loadSettings();
+  initGrid();
+  initChips();
+  
+  // Start loading transformers models right away
+  loadModels();
+
+</script>
+</body>
+</html>
