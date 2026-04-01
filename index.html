@@ -495,6 +495,28 @@
       normA = Math.sqrt(normA);
       normB = Math.sqrt(normB);
 
+      // SVG 시각화를 위한 역코사인(ArcCos) 각도 계산
+      let clampedSim = Math.max(-1, Math.min(1, sim)); // 부동소수점 오차 방지
+      let angleRad = Math.acos(clampedSim);
+      let angleDeg = (angleRad * 180 / Math.PI).toFixed(1);
+
+      // 2D 평면 투영 (UI상 중심점을 잡고 수학적 각도 표현)
+      const cx = 110, cy = 130, r = 85; 
+      const radA = -Math.PI / 6; // Vector A: 오른쪽 상단 30도 방향으로 고정
+      const radB = radA - angleRad; // Vector B: A로부터 실제 코사인 각도만큼 회전
+      
+      const ax = cx + r * Math.cos(radA);
+      const ay = cy + r * Math.sin(radA);
+      const bx = cx + r * Math.cos(radB);
+      const by = cy + r * Math.sin(radB);
+      
+      // Arc path 그리기 좌표 (각도를 나타내는 호)
+      const arcStartX = cx + 30 * Math.cos(radA);
+      const arcStartY = cy + 30 * Math.sin(radA);
+      const arcEndX = cx + 30 * Math.cos(radB);
+      const arcEndY = cy + 30 * Math.sin(radB);
+      const arcFlag = angleRad > Math.PI ? 1 : 0; // 180도가 넘어가면 넓은 영역을 칠하도록
+
       provePanel.innerHTML = `
         <strong style="color:var(--text-primary)">[1. 문장 A의 임베딩 벡터 변환] (총 ${dim}차원)</strong><br>
         A = [${vecA_slice}, ...]<br><br>
@@ -506,7 +528,41 @@
           = ${dot.toFixed(4)} / (${normA.toFixed(4)} × ${normB.toFixed(4)})<br>
           = <span style="color:var(--success); font-weight:bold;">${sim.toFixed(3)}</span>
         </div>
-        위 공식에 의해 구해진 코사인 값이 1에 가까울수록(두 벡터 사이의 각도가 0도에 수렴), 컴퓨터는 두 문장이 ${sim > 0.8 ? '<span style="color:var(--success)">"의미적으로 완전히 동일하다"고 판단</span>' : '"의미 공간상 거리가 있어 서로 다른 주제이다"고 수학적으로 증명'}합니다.
+        
+        <strong style="color:var(--text-primary); display:block; margin-top:1.2rem;">[4. 시맨틱 공간 시각화 (2차원 투영)]</strong>
+        <div style="display:flex; flex-direction:column; align-items:center; background:rgba(0,0,0,0.3); border-radius:8px; padding:1rem; margin-top:0.5rem;">
+          <svg width="220" height="140" viewBox="0 0 220 140">
+            <!-- X/Y Axes -->
+            <line x1="10" y1="130" x2="210" y2="130" stroke="rgba(255,255,255,0.1)"/>
+            <line x1="110" y1="10" x2="110" y2="140" stroke="rgba(255,255,255,0.1)"/>
+            
+            <!-- Angle Arc -->
+            <path d="M ${arcStartX} ${arcStartY} A 30 30 0 ${arcFlag} 0 ${arcEndX} ${arcEndY}" fill="none" stroke="rgba(255,255,255,0.4)" stroke-dasharray="2 2"/>
+            <text x="${cx - 15}" y="${cy - 45}" fill="#fff" font-size="11" font-weight="bold">${angleDeg}°</text>
+            
+            <!-- Vector A -->
+            <line x1="${cx}" y1="${cy}" x2="${ax}" y2="${ay}" stroke="#6366f1" stroke-width="3" marker-end="url(#arrowA-${idx})"/>
+            <text x="${ax + 8}" y="${ay + 5}" fill="#6366f1" font-size="12" font-weight="bold">A</text>
+            
+            <!-- Vector B (or same as A if identical) -->
+            ${angleDeg === '0.0' ? '' : `<line x1="${cx}" y1="${cy}" x2="${bx}" y2="${by}" stroke="#10b981" stroke-width="3" marker-end="url(#arrowB-${idx})"/>`}
+            <text x="${bx - 15}" y="${by - 8}" fill="#10b981" font-size="12" font-weight="bold">B</text>
+            
+            <defs>
+              <marker id="arrowA-${idx}" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="#6366f1" />
+              </marker>
+              <marker id="arrowB-${idx}" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="#10b981" />
+              </marker>
+            </defs>
+          </svg>
+          <div style="font-size:0.75rem; color:var(--text-secondary); text-align:center; line-height:1.5; margin-top:0.8rem;">
+            고차원 의미 공간의 거리를 2D로 투영한 모습입니다.<br>
+            두 벡터의 사이각(θ)은 <strong style="color:#fff">${angleDeg}도</strong>이며, <br>
+            cos(${angleDeg}°) 값이 바로 유사도 <strong style="color:var(--success)">${sim.toFixed(3)}</strong> 입니다.
+          </div>
+        </div>
       `;
       
       proveBtn.style.display = 'block';
