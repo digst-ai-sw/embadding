@@ -157,6 +157,26 @@
   /* Status Toast */
   .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); padding: 0.8rem 1.5rem; border-radius: 30px; font-size: 0.9rem; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 0.8rem; }
   .toast.show { transform: translateX(-50%) translateY(0); }
+  
+  /* Education Panel */
+  .edu-panel {
+    background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; margin-bottom: 2rem; overflow: hidden;
+  }
+  .edu-header {
+    padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-weight: 600; color: var(--accent); transition: background 0.2s;
+  }
+  .edu-header:hover { background: rgba(99, 102, 241, 0.1); }
+  .edu-header svg { transition: transform 0.3s; }
+  .edu-header.open svg { transform: rotate(180deg); }
+  .edu-content {
+    padding: 0 1.5rem; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out; font-size: 0.9rem; color: var(--text-secondary);
+  }
+  .edu-content.open {
+    padding: 1rem 1.5rem 1.5rem; max-height: 1000px; border-top: 1px solid rgba(99, 102, 241, 0.1);
+  }
+  .edu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.2rem; margin-top: 1rem; }
+  .edu-card { background: rgba(0,0,0,0.2); padding: 1.2rem; border-radius: 8px; border-left: 3px solid var(--accent); }
+  .edu-card h3 { color: var(--text-primary); margin-bottom: 0.5rem; font-size: 0.95rem; }
 </style>
 </head>
 <body>
@@ -167,6 +187,30 @@
     <p class="subtitle">강력한 브라우저 내장(On-Device) 임베딩 모델군과 상용 LLM의 시맨틱 유사도 추론 결과를 실시간으로 비교하고 평가해 보세요.</p>
     <button class="settings-btn" id="openSettings" title="API Settings">⚙️</button>
   </header>
+
+  <div class="edu-panel">
+    <div class="edu-header" id="eduToggle">
+      <span>📚 어떻게 이해해야 할까요? (학습 목표 및 핵심 개념)</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </div>
+    <div class="edu-content" id="eduContent">
+      <p style="margin-bottom: 1rem; line-height: 1.5;">컴퓨터가 두 문장의 의미를 어떻게 이해하고 비교하는지 아래 세 가지 핵심 개념을 통해 알아보세요.</p>
+      <div class="edu-grid">
+        <div class="edu-card">
+          <h3>1. 임베딩(Embedding)이란?</h3>
+          <p>문장이나 단어를 컴퓨터가 계산할 수 있는 '수많은 숫자로 이루어진 좌표(벡터)'로 변환하는 기술입니다. 의미가 비슷할수록 여러 차원의 공간에서 서로 더 가까운 거리에 위치하게 됩니다.</p>
+        </div>
+        <div class="edu-card">
+          <h3>2. 코사인 유사도(Cosine Similarity)</h3>
+          <p>두 문장의 임베딩 좌표가 원점에서 볼 때 가리키는 방향이 얼마나 일치하는지를 나타냅니다. 1(100%)에 가까울수록 의미가 완전히 같고, 낮을수록 서로 다른 주제를 뜻합니다.</p>
+        </div>
+        <div class="edu-card">
+          <h3>3. 임베딩 모델 vs LLM</h3>
+          <p>임베딩 모델은 문장을 좌표로 바꿔 빠른 검색 연산(Retrieval)에 집중하는 작은 인공지능입니다. 반면 LLM(거대 모델)은 맥락을 깊이 추론하여 문맥적 차이를 긴 말(Text)로 직접 설명할 수 있습니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="glass-panel" style="margin-bottom: 2rem;">
     <div class="input-group">
@@ -351,6 +395,9 @@
         <div class="progress-bg">
           <div class="progress-fill" id="bar-${idx}"></div>
         </div>
+        <button class="btn-secondary" id="prove-btn-${idx}" style="display:none; width:100%; margin-top:1rem; padding:0.6rem; font-size:0.8rem; border-radius:8px; cursor:pointer;">🔍 임베딩 벡터 및 수학적 증명 보기</button>
+        <div id="prove-panel-${idx}" style="display:none; margin-top:0.8rem; font-size:0.75rem; color:var(--text-secondary); background:rgba(0,0,0,0.4); padding:1rem; border-radius:8px; word-break:break-all; border-left:2px solid var(--accent);">
+        </div>
       `;
       ui.grid.appendChild(card);
     });
@@ -430,6 +477,44 @@
       }, 50);
       
       card.classList.add('done');
+
+      // Prove Visualization
+      const proveBtn = document.getElementById(`prove-btn-${idx}`);
+      const provePanel = document.getElementById(`prove-panel-${idx}`);
+      
+      const dim = outA.data.length;
+      const vecA_slice = Array.from(outA.data).slice(0, 5).map(v => v.toFixed(4)).join(', ');
+      const vecB_slice = Array.from(outB.data).slice(0, 5).map(v => v.toFixed(4)).join(', ');
+
+      let dot = 0, normA = 0, normB = 0;
+      for (let i = 0; i < dim; i++) {
+        dot += outA.data[i] * outB.data[i];
+        normA += outA.data[i] ** 2;
+        normB += outB.data[i] ** 2;
+      }
+      normA = Math.sqrt(normA);
+      normB = Math.sqrt(normB);
+
+      provePanel.innerHTML = `
+        <strong style="color:var(--text-primary)">[1. 문장 A의 임베딩 벡터 변환] (총 ${dim}차원)</strong><br>
+        A = [${vecA_slice}, ...]<br><br>
+        <strong style="color:var(--text-primary)">[2. 문장 B의 임베딩 벡터 변환] (총 ${dim}차원)</strong><br>
+        B = [${vecB_slice}, ...]<br><br>
+        <strong style="color:var(--text-primary)">[3. 수학적 증명 공식 (코사인 유사도)]</strong><br>
+        <div style="background:rgba(255,255,255,0.05); padding:0.5rem; border-radius:4px; margin:0.3rem 0; font-family:'DM Mono', monospace; text-align:center; letter-spacing:0;">
+          Cosine_Sim(A, B) = (A · B) / (||A|| × ||B||)<br>
+          = ${dot.toFixed(4)} / (${normA.toFixed(4)} × ${normB.toFixed(4)})<br>
+          = <span style="color:var(--success); font-weight:bold;">${sim.toFixed(3)}</span>
+        </div>
+        위 공식에 의해 구해진 코사인 값이 1에 가까울수록(두 벡터 사이의 각도가 0도에 수렴), 컴퓨터는 두 문장이 ${sim > 0.8 ? '<span style="color:var(--success)">"의미적으로 완전히 동일하다"고 판단</span>' : '"의미 공간상 거리가 있어 서로 다른 주제이다"고 수학적으로 증명'}합니다.
+      `;
+      
+      proveBtn.style.display = 'block';
+      proveBtn.onclick = () => {
+         const isHidden = provePanel.style.display === 'none';
+         provePanel.style.display = isHidden ? 'block' : 'none';
+         proveBtn.innerHTML = isHidden ? '수학적 증명 닫기 ▲' : '🔍 임베딩 벡터 및 수학적 증명 보기';
+      };
     });
     
     await Promise.all(promises);
@@ -542,6 +627,13 @@
   ui.saveSettingsBtn.addEventListener('click', saveSettings);
   ui.settingsModal.addEventListener('click', (e) => {
     if(e.target === ui.settingsModal) ui.settingsModal.classList.remove('active');
+  });
+  
+  const eduToggle = document.getElementById('eduToggle');
+  const eduContent = document.getElementById('eduContent');
+  eduToggle.addEventListener('click', () => {
+    eduToggle.classList.toggle('open');
+    eduContent.classList.toggle('open');
   });
 
   // App Bootstrap
